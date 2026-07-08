@@ -1,0 +1,404 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────
+
+enum UserRole {
+  TALENT
+  CASTING_DIRECTOR
+  CREATOR
+  ADMIN
+}
+
+enum CastingCallStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  FILLED
+}
+
+enum CastingCallType {
+  FILM
+  TV
+  COMMERCIAL
+  MUSIC_VIDEO
+  THEATER
+  DIGITAL
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+enum UnionStatus {
+  SAG_AFTRA
+  NON_UNION
+  EQUITY
+  AFTRA
+  OTHER
+}
+
+enum DigitalTwinStatus {
+  TRAINING
+  READY
+  ERROR
+}
+
+enum SubscriptionTier {
+  FREE
+  BRONZE
+  SILVER
+  GOLD
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum ContractType {
+  TALENT
+  AI_CONSENT
+  DIGITAL_TWIN
+  CASTING_DIRECTOR
+  ADVERTISER
+}
+
+enum ContractStatus {
+  PENDING
+  SIGNED
+  EXPIRED
+  REVOKED
+}
+
+enum EarningSource {
+  AD_REVENUE
+  ENGAGEMENT
+  REFERRAL
+  CASTING_FEE
+}
+
+enum EarningStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum AiGenerationType {
+  SCENE
+  REEL
+  MUSIC_VIDEO
+  DIGITAL_TWIN
+  ENHANCEMENT
+}
+
+enum AiGenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DMCATakedownStatus {
+  PENDING
+  REVIEWING
+  REMOVED
+  REJECTED
+}
+
+// ─── Core Models ────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String
+  role           UserRole  @default(TALENT)
+  emailVerified  Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  profile               Profile?
+  applications          Application[]
+  castingCalls          CastingCall[]
+  digitalTwins          DigitalTwin[]
+  subscriptions         Subscription[]
+  contracts             Contract[]
+  earnings              Earning[]
+  aiGenerations         AiGeneration[]
+  auditLogs             AuditLog[]
+  masterCodesCreated    MasterCode[]
+
+  @@map("users")
+}
+
+model Profile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  firstName      String?
+  lastName       String?
+  displayName    String?
+  avatarUrl      String?
+  bio            String?
+  location       String?
+  phone          String?
+  dateOfBirth    DateTime?
+  isMinor        Boolean  @default(false)
+  guardianName   String?
+  guardianEmail  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  talentProfile   TalentProfile?
+  castingDirector CastingDirectorProfile?
+
+  @@map("profiles")
+}
+
+model TalentProfile {
+  id              String     @id @default(uuid())
+  profileId       String     @unique
+  stageName       String?
+  unionStatus     UnionStatus @default(NON_UNION)
+  skills          String[]
+  experienceYears Int?
+  height          String?
+  weight          String?
+  ethnicity       String?
+  languages       String[]
+  reelUrl         String?
+  portfolioUrls   String[]
+  availability    String?
+  isFeatured      Boolean    @default(false)
+  rankingScore    Float      @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("talent_profiles")
+}
+
+model CastingDirectorProfile {
+  id              String   @id @default(uuid())
+  profileId       String   @unique
+  companyName     String?
+  companyWebsite  String?
+  credits         String[]
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("casting_director_profiles")
+}
+
+// ─── Casting ────────────────────────────────────────────────────────────
+
+model CastingCall {
+  id            String            @id @default(uuid())
+  title         String
+  description   String
+  directorId    String
+  status        CastingCallStatus @default(DRAFT)
+  type          CastingCallType
+  location      String?
+  remoteOk      Boolean           @default(false)
+  budget        Float?
+  compensation  String?
+  deadline      DateTime?
+  requirements  Json?
+  roles         Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // Relations
+  director      User          @relation(fields: [directorId], references: [id], onDelete: Cascade)
+  applications  Application[]
+
+  @@map("casting_calls")
+}
+
+model Application {
+  id           String            @id @default(uuid())
+  talentId     String
+  castingCallId String
+  status       ApplicationStatus @default(PENDING)
+  coverLetter  String?
+  videoUrl     String?
+  notes        String?
+  submittedAt  DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  talent      User        @relation(fields: [talentId], references: [id], onDelete: Cascade)
+  castingCall CastingCall @relation(fields: [castingCallId], references: [id], onDelete: Cascade)
+
+  @@unique([talentId, castingCallId])
+  @@map("applications")
+}
+
+// ─── Digital Twin ───────────────────────────────────────────────────────
+
+model DigitalTwin {
+  id              String            @id @default(uuid())
+  talentId        String
+  name            String
+  description     String?
+  modelData       Json?
+  thumbnailUrl    String?
+  consentSigned   Boolean           @default(false)
+  consentSignedAt DateTime?
+  status          DigitalTwinStatus @default(TRAINING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  talent User @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@map("digital_twins")
+}
+
+// ─── Monetization ───────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  userId               String
+  tier                 SubscriptionTier   @default(FREE)
+  price                Float              @default(0)
+  startDate            DateTime           @default(now())
+  endDate              DateTime?
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model MasterCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  tier        SubscriptionTier @default(FREE)
+  maxUses     Int      @default(1)
+  usedCount   Int      @default(0)
+  expiresAt   DateTime?
+  revoked     Boolean  @default(false)
+  createdBy   String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  creator User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@map("master_codes")
+}
+
+// ─── Legal ──────────────────────────────────────────────────────────────
+
+model Contract {
+  id          String         @id @default(uuid())
+  userId      String
+  type        ContractType
+  content     String
+  signedAt    DateTime?
+  ipAddress   String?
+  userAgent   String?
+  status      ContractStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
+
+model DMCATakedown {
+  id              String             @id @default(uuid())
+  requesterEmail  String
+  infringingUrl   String
+  originalWorkUrl String?
+  description     String?
+  status          DMCATakedownStatus @default(PENDING)
+  createdAt       DateTime           @default(now())
+  resolvedAt      DateTime?
+
+  @@map("dmca_takedowns")
+}
+
+// ─── Earnings & AI ──────────────────────────────────────────────────────
+
+model Earning {
+  id          String        @id @default(uuid())
+  userId      String
+  amount      Float
+  currency    String        @default("USD")
+  source      EarningSource
+  description String?
+  status      EarningStatus @default(PENDING)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("earnings")
+}
+
+model AiGeneration {
+  id           String             @id @default(uuid())
+  userId       String
+  type         AiGenerationType
+  inputData    Json?
+  outputUrl    String?
+  costCredits  Int                @default(0)
+  status       AiGenerationStatus @default(PENDING)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_generations")
+}
+
+// ─── Audit ──────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

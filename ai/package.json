@@ -1,0 +1,34 @@
+{
+  "name": "big-starz-ai-pipelines",
+  "version": "1.0.0",
+  "description": "AI Pipeline Scripts for Big Starz Casting App — using free HuggingFace open-source models",
+  "type": "module",
+  "scripts": {
+    "generate:scene": "node pipelines/scene-generator.js",
+    "generate:reel": "node pipelines/reel-generator.js",
+    "generate:video": "node pipelines/music-video.js",
+    "generate:twin": "node pipelines/digital-twin.js",
+    "enhance": "node pipelines/auto-enhance.js",
+    "watermark": "node pipelines/watermark.js",
+    "safety-check": "node pipelines/safety-filter.js",
+    "auto-edit": "node pipelines/auto-edit.js"
+  },
+  "keywords": ["ai", "casting", "huggingface", "generative-ai", "video", "images"],
+  "author": "Big Starz",
+  "license": "MIT",
+  "dependencies": {
+    "@huggingface/inference": "^2.8.0",
+    "canvas": "^2.11.2",
+    "dotenv": "^16.3.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "sharp": "^0.33.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/uuid": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

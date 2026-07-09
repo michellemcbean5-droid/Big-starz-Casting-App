@@ -402,3 +402,75 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+// ─── Withdrawals ────────────────────────────────────────────────────────
+
+model Withdrawal {
+  id            String           @id @default(uuid())
+  userId        String
+  amount        Float
+  currency      String           @default("USD")
+  paymentMethod String
+  status        WithdrawalStatus @default(PENDING)
+  processedAt   DateTime?
+  failureReason String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("withdrawals")
+}
+
+enum WithdrawalStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ─── Consent ────────────────────────────────────────────────────────────
+
+model Consent {
+  id                       String    @id @default(uuid())
+  userId                   String    @unique
+  aiConsentSigned          Boolean   @default(false)
+  aiConsentSignedAt        DateTime?
+  aiConsentSignature       String?
+  likenessConsentSigned    Boolean   @default(false)
+  likenessConsentSignedAt  DateTime?
+  likenessConsentSignature String?
+  guardianConsentSigned    Boolean   @default(false)
+  guardianConsentSignedAt  DateTime?
+  guardianName             String?
+  guardianEmail            String?
+  guardianPhone            String?
+  relationship             String?
+  guardianSignature        String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("consents")
+}
+
+// ─── DMCA Counter Notifications ─────────────────────────────────────────
+
+model DMCACounterNotification {
+  id                    String   @id @default(uuid())
+  dmcaTakedownId        String
+  submitterEmail        String
+  submitterName         String
+  statement             String
+  consentToJurisdiction Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  dmcaTakedown DMCATakedown @relation(fields: [dmcaTakedownId], references: [id], onDelete: Cascade)
+
+  @@map("dmca_counter_notifications")
+}

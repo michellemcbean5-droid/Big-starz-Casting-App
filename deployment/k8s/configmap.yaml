@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: big-starz-config
+  namespace: big-starz
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  API_URL: "https://api.bigstarz.com"
+  APP_URL: "https://app.bigstarz.com"
+  CORS_ORIGIN: "https://app.bigstarz.com"
+  HF_MODEL_TEXT: "mistralai/Mistral-7B-Instruct-v0.2"
+  HF_MODEL_IMAGE: "stabilityai/stable-diffusion-xl-base-1.0"
+  HF_MODEL_VIDEO: "stabilityai/stable-video-diffusion-img2vid-xt"
+  HF_MODEL_STT: "openai/whisper-large-v3"
+  HF_MODEL_TTS: "microsoft/speecht5_tts"

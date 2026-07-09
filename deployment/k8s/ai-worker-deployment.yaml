@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-worker
+  namespace: big-starz
+  labels:
+    app: ai-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-worker
+  template:
+    metadata:
+      labels:
+        app: ai-worker
+    spec:
+      containers:
+        - name: ai-worker
+          image: big-starz/ai-worker:latest
+          envFrom:
+            - configMapRef:
+                name: big-starz-config
+            - secretRef:
+                name: big-starz-secrets
+          env:
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: API_URL
+              value: "http://backend:80"
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-pvc

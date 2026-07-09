@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: big-starz
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      initContainers:
+        - name: prisma-migrate
+          image: big-starz/backend:latest
+          command: ["npx", "prisma", "migrate", "deploy"]
+          envFrom:
+            - configMapRef:
+                name: big-starz-config
+            - secretRef:
+                name: big-starz-secrets
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://bigstarz:$(DB_PASSWORD)@postgres:5432/bigstarz"
+      containers:
+        - name: backend
+          image: big-starz/backend:latest
+          ports:
+            - containerPort: 3001
+              name: http
+          envFrom:
+            - configMapRef:
+                name: big-starz-config
+            - secretRef:
+                name: big-starz-secrets
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://bigstarz:$(DB_PASSWORD)@postgres:5432/bigstarz"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-pvc

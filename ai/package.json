@@ -11,7 +11,8 @@
     "enhance": "node pipelines/auto-enhance.js",
     "watermark": "node pipelines/watermark.js",
     "safety-check": "node pipelines/safety-filter.js",
-    "auto-edit": "node pipelines/auto-edit.js"
+    "auto-edit": "node pipelines/auto-edit.js",
+    "worker": "node worker.js"
   },
   "keywords": ["ai", "casting", "huggingface", "generative-ai", "video", "images"],
   "author": "Big Starz",
@@ -21,6 +22,7 @@
     "canvas": "^2.11.2",
     "dotenv": "^16.3.1",
     "fluent-ffmpeg": "^2.1.2",
+    "redis": "^4.6.0",
     "sharp": "^0.33.0",
     "uuid": "^9.0.0"
   },

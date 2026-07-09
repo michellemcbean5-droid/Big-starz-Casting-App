@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads-pvc
+  namespace: big-starz
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  # Update storageClassName based on your cluster provisioner
+  # Examples: "standard" (GKE), "gp2" (EKS), "managed-premium" (AKS)
+  storageClassName: standard

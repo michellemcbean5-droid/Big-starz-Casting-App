@@ -1,5 +1,7 @@
-import { PrismaClient, UserRole, SubscriptionTier, CastingCallStatus, CastingCallType, ApplicationStatus, UnionStatus, DigitalTwinStatus, SubscriptionStatus, ContractType, ContractStatus, EarningSource, EarningStatus, AiGenerationType, AiGenerationStatus, DMCATakedownStatus } from '@prisma/client';
+import { PrismaClient, UserRole, SubscriptionTier, CastingCallStatus, CastingCallType, ApplicationStatus, UnionStatus, DigitalTwinStatus, SubscriptionStatus, ContractType, ContractStatus, EarningSource, EarningStatus, AiGenerationType, AiGenerationStatus, DMCATakedownStatus, SkillCategory, SkillProficiency } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { seedSkills } from './seed_skills';
+import { seedSkills } from './seed_skills';
 
 const prisma = new PrismaClient();
 

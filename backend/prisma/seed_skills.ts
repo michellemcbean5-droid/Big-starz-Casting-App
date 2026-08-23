@@ -194,127 +194,14 @@ const fullstackMobileSkills = [
   }
 ];
 
-// Additional categories for system design and production
-const systemDesignSkills = [
-  {
-    name: 'System Architecture Design',
-    description: 'Ability to design scalable, maintainable, and efficient system architectures',
-    category: SkillCategory.SYSTEM_DESIGN,
-    tags: ['architecture', 'scalability', 'system-design', 'maintainability']
-  },
-  {
-    name: 'Database Schema Design',
-    description: 'Expertise in creating optimized database schemas for performance and data integrity',
-    category: SkillCategory.SYSTEM_DESIGN,
-    tags: ['database-design', 'schema', 'performance', 'data-integrity']
-  }
-];
-
-const productionDeploymentSkills = [
-  {
-    name: 'Docker Containerization',
-    description: 'Skill in creating and managing Docker containers for application deployment',
-    category: SkillCategory.PRODUCTION_DEPLOYMENT,
-    tags: ['Docker', 'containerization', 'deployment', 'microservices']
-  },
-  {
-    name: 'Monitoring & Logging',
-    description: 'Expertise in setting up monitoring, logging, and alerting systems',
-    category: SkillCategory.PRODUCTION_DEPLOYMENT,
-    tags: ['monitoring', 'logging', 'alerting', 'observability']
-  }
-];
-
-const dataAnalyticsSkills = [
-  {
-    name: 'Data Analysis & Visualization',
-    description: 'Ability to analyze data and create meaningful visualizations',
-    category: SkillCategory.DATA_ANALYTICS,
-    tags: ['data-analysis', 'visualization', 'analytics', 'insights']
-  },
-  {
-    name: 'Machine Learning Pipeline Design',
-    description: 'Skill in designing and implementing machine learning pipelines',
-    category: SkillCategory.DATA_ANALYTICS,
-    tags: ['machine-learning', 'pipeline', 'ML', 'data-science']
-  }
-];
-
-const securityComplianceSkills = [
-  {
-    name: 'GDPR Compliance',
-    description: 'Expertise in implementing GDPR compliance requirements',
-    category: SkillCategory.SECURITY_COMPLIANCE,
-    tags: ['GDPR', 'compliance', 'data-protection', 'privacy']
-  },
-  {
-    name: 'PCI DSS Compliance',
-    description: 'Skill in implementing PCI DSS requirements for payment processing',
-    category: SkillCategory.SECURITY_COMPLIANCE,
-    tags: ['PCI-DSS', 'payment-security', 'compliance']
-  }
-];
-
-const performanceOptimizationSkills = [
-  {
-    name: 'Performance Profiling',
-    description: 'Ability to profile and optimize application performance',
-    category: SkillCategory.PERFORMANCE_OPTIMIZATION,
-    tags: ['performance', 'profiling', 'optimization', 'benchmarking']
-  },
-  {
-    name: 'Caching Strategies',
-    description: 'Expertise in implementing effective caching strategies',
-    category: SkillCategory.PERFORMANCE_OPTIMIZATION,
-    tags: ['caching', 'Redis', 'Memcached', 'performance']
-  }
-];
-
-const devopsCloudSkills = [
-  {
-    name: 'Infrastructure as Code',
-    description: 'Skill in managing infrastructure using code (Terraform, Pulumi)',
-    category: SkillCategory.DEVOPS_CLOUD,
-    tags: ['IaC', 'Terraform', 'Pulumi', 'infrastructure']
-  },
-  {
-    name: 'Cloud Security',
-    description: 'Expertise in implementing cloud security best practices',
-    category: SkillCategory.DEVOPS_CLOUD,
-    tags: ['cloud-security', 'IAM', 'security-groups', 'network-security']
-  }
-];
-
-const generativeAISkills = [
-  {
-    name: 'Prompt Engineering',
-    description: 'Skill in crafting effective prompts for generative AI models',
-    category: SkillCategory.GENERATIVE_AI,
-    tags: ['prompt-engineering', 'LLM', 'generative-AI']
-  },
-  {
-    name: 'Fine-Tuning Models',
-    description: 'Expertise in fine-tuning models for specific use cases',
-    category: SkillCategory.GENERATIVE_AI,
-    tags: ['fine-tuning', 'model-training', 'custom-models']
-  }
-];
-
-// Combine all skills
+// All skills combined
 const allSkills = [
   ...aiArchitectureSkills,
   ...backendInfrastructureSkills,
-  ...fullstackMobileSkills,
-  ...systemDesignSkills,
-  ...productionDeploymentSkills,
-  ...dataAnalyticsSkills,
-  ...securityComplianceSkills,
-  ...performanceOptimizationSkills,
-  ...devopsCloudSkills,
-  ...generativeAISkills
+  ...fullstackMobileSkills
 ];
 
-async function main(): Promise<void> {
+export async function seedSkills(): Promise<void> {
   console.log('\u{1F331} Starting skills database seed...');
 
   // Clean existing skills
@@ -339,14 +226,14 @@ async function main(): Promise<void> {
 
   console.log(`\u{2705} Created ${allSkills.length} skills`);
   
-  // Link some skills to demo talents
+  // Link some skills to demo talents if they exist
   const talent1 = await prisma.user.findFirst({
-    where: { email: 'emma.watson@bigstarz.com' },
+    where: { email: 'talent1@bigstarz.com' },
     include: { talentProfile: true }
   });
 
   const talent2 = await prisma.user.findFirst({
-    where: { email: 'ryan.gosling@bigstarz.com' },
+    where: { email: 'talent2@bigstarz.com' },
     include: { talentProfile: true }
   });
 
@@ -392,11 +279,14 @@ async function main(): Promise<void> {
   console.log('\u{2705} Skills database seed completed successfully!');
 }
 
-main()
-  .catch((e: Error) => {
-    console.error('\u{274C} Seed failed:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// Allow direct execution
+if (require.main === module) {
+  seedSkills()
+    .catch((e: Error) => {
+      console.error('\u{274C} Seed failed:', e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

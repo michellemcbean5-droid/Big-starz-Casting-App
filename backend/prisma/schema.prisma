@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums ──────────────────────────────────────────────────────────────
+// [4m Enums [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 enum UserRole {
   TALENT
@@ -117,7 +117,28 @@ enum DMCATakedownStatus {
   REJECTED
 }
 
-// ─── Core Models ────────────────────────────────────────────────────────
+// Skill Enums
+enum SkillCategory {
+  AI_ARCHITECTURE
+  BACKEND_INFRASTRUCTURE
+  FULLSTACK_MOBILE
+  DEVOPS_CLOUD
+  SECURITY_COMPLIANCE
+  DATA_ANALYTICS
+  PERFORMANCE_OPTIMIZATION
+  GENERATIVE_AI
+  SYSTEM_DESIGN
+  PRODUCTION_DEPLOYMENT
+}
+
+enum SkillProficiency {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+// [4m Core Models [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model User {
   id             String    @id @default(uuid())
@@ -189,6 +210,7 @@ model TalentProfile {
 
   // Relations
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  talentSkills TalentSkill[]
 
   @@map("talent_profiles")
 }
@@ -209,7 +231,65 @@ model CastingDirectorProfile {
   @@map("casting_director_profiles")
 }
 
-// ─── Casting ────────────────────────────────────────────────────────────
+// [4m Skills Models [0m
+
+model Skill {
+  id          String         @id @default(uuid())
+  name        String         @unique
+  description String?
+  category    SkillCategory
+  tags        String[]
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  talentSkills TalentSkill[]
+  castingCallSkills CastingCallSkill[]
+
+  @@index([name])
+  @@index([category])
+  @@map("skills")
+}
+
+model TalentSkill {
+  id           String   @id @default(uuid())
+  talentProfileId String
+  skillId      String
+  proficiency  SkillProficiency @default(BEGINNER)
+  yearsExperience Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  talentProfile TalentProfile @relation(fields: [talentProfileId], references: [id], onDelete: Cascade)
+  skill         Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([talentProfileId, skillId])
+  @@index([talentProfileId])
+  @@index([skillId])
+  @@map("talent_skills")
+}
+
+model CastingCallSkill {
+  id           String   @id @default(uuid())
+  castingCallId String
+  skillId      String
+  required     Boolean  @default(false)
+  weight       Float    @default(1.0)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  castingCall CastingCall @relation(fields: [castingCallId], references: [id], onDelete: Cascade)
+  skill       Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([castingCallId, skillId])
+  @@index([castingCallId])
+  @@index([skillId])
+  @@map("casting_call_skills")
+}
+
+// [4m Casting [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model CastingCall {
   id            String            @id @default(uuid())
@@ -231,6 +311,7 @@ model CastingCall {
   // Relations
   director      User          @relation(fields: [directorId], references: [id], onDelete: Cascade)
   applications  Application[]
+  castingCallSkills CastingCallSkill[]
 
   @@map("casting_calls")
 }
@@ -254,7 +335,7 @@ model Application {
   @@map("applications")
 }
 
-// ─── Digital Twin ───────────────────────────────────────────────────────
+// [4m Digital Twin [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model DigitalTwin {
   id              String            @id @default(uuid())
@@ -275,7 +356,7 @@ model DigitalTwin {
   @@map("digital_twins")
 }
 
-// ─── Monetization ───────────────────────────────────────────────────────
+// [4m Monetization [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model Subscription {
   id                   String             @id @default(uuid())
@@ -312,7 +393,7 @@ model MasterCode {
   @@map("master_codes")
 }
 
-// ─── Legal ──────────────────────────────────────────────────────────────
+// [4m Legal [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model Contract {
   id          String         @id @default(uuid())
@@ -345,7 +426,7 @@ model DMCATakedown {
   @@map("dmca_takedowns")
 }
 
-// ─── Earnings & AI ──────────────────────────────────────────────────────
+// [4m Earnings & AI [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model Earning {
   id          String        @id @default(uuid())
@@ -382,7 +463,7 @@ model AiGeneration {
   @@map("ai_generations")
 }
 
-// ─── Audit ──────────────────────────────────────────────────────────────
+// [4m Audit [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model AuditLog {
   id         String   @id @default(uuid())
@@ -403,7 +484,7 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ─── Withdrawals ────────────────────────────────────────────────────────
+// [4m Withdrawals [0m
 
 model Withdrawal {
   id            String           @id @default(uuid())
@@ -430,7 +511,7 @@ enum WithdrawalStatus {
   CANCELLED
 }
 
-// ─── Consent ────────────────────────────────────────────────────────────
+// [4m Consent [0m [4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m[0m[4m
 
 model Consent {
   id                       String    @id @default(uuid())
@@ -457,7 +538,7 @@ model Consent {
   @@map("consents")
 }
 
-// ─── DMCA Counter Notifications ─────────────────────────────────────────
+// [4m DMCA Counter Notifications [0m
 
 model DMCACounterNotification {
   id                    String   @id @default(uuid())

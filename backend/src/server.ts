@@ -24,6 +24,7 @@ import masterCodeRoutes from './routes/master-codes';
 import earningsRoutes from './routes/earnings';
 import contractRoutes from './routes/contracts';
 import consentRoutes from './routes/consent';
+import skillRoutes from './routes/skills';
 import dmcaRoutes from './routes/dmca';
 import auditRoutes from './routes/audit';
 
@@ -70,6 +71,7 @@ app.use('/api/v1/master-codes', masterCodeRoutes);
 app.use('/api/v1/earnings', earningsRoutes);
 app.use('/api/v1/contracts', contractRoutes);
 app.use('/api/v1/consent', consentRoutes);
+app.use('/api/v1/skills', skillRoutes);
 app.use('/api/v1/dmca', dmcaRoutes);
 app.use('/api/v1/audit', auditRoutes);
 

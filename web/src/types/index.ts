@@ -136,3 +136,77 @@ export interface DmcaRequest {
   status: "pending" | "reviewed" | "resolved";
   createdAt: string;
 }
+
+
+export type SkillCategory = 
+  | 'AI_ARCHITECTURE'
+  | 'BACKEND_INFRASTRUCTURE'
+  | 'FULLSTACK_MOBILE'
+  | 'DEVOPS_CLOUD'
+  | 'SECURITY_COMPLIANCE'
+  | 'DATA_ANALYTICS'
+  | 'PERFORMANCE_OPTIMIZATION'
+  | 'GENERATIVE_AI'
+  | 'SYSTEM_DESIGN'
+  | 'PRODUCTION_DEPLOYMENT';
+
+export type SkillProficiency = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+
+export interface Skill {
+  id: string;
+  name: string;
+  description?: string;
+  category: SkillCategory;
+  tags: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TalentSkill {
+  id: string;
+  talentProfileId: string;
+  skillId: string;
+  proficiency: SkillProficiency;
+  yearsExperience?: number;
+  createdAt: string;
+  updatedAt: string;
+  skill?: Skill;
+}
+
+export interface CastingCallSkill {
+  id: string;
+  castingCallId: string;
+  skillId: string;
+  required: boolean;
+  weight: number;
+  createdAt: string;
+  skill?: Skill;
+}
+
+export interface SkillMatchResult {
+  score: number;
+  requiredMatchCount: number;
+  requiredSkillsCount: number;
+  optionalMatchCount: number;
+  optionalSkillsCount: number;
+}
+
+export interface TalentMatchResult {
+  talentProfile: TalentProfile;
+  score: number;
+  requiredMatchCount: number;
+  requiredSkillsCount: number;
+  optionalMatchCount: number;
+  optionalSkillsCount: number;
+}
+
+export interface CastingCallMatchResult {
+  castingCall: CastingCall;
+  score: number;
+  requiredMatchCount: number;
+  requiredSkillsCount: number;
+  optionalMatchCount: number;
+  optionalSkillsCount: number;
+}
+

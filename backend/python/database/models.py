@@ -3,7 +3,7 @@ SQLAlchemy Models for Big Starz Casting App
 Task 123-140: PostgreSQL Schemas and ORM Models
 """
 
-from sqlalchemy import Column, String, DateTime, Float, Boolean, Integer, JSON, Text, ForeignKey, Enum
+from sqlalchemy import Column, String, DateTime, Float, Boolean, Integer, JSON, Text, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
@@ -64,6 +64,25 @@ class User(Base):
     withdrawals = relationship("Withdrawal", back_populates="user")
 
 
+
+class SkillCategory(str):
+    AI_ARCHITECTURE = "AI_ARCHITECTURE"
+    BACKEND_INFRASTRUCTURE = "BACKEND_INFRASTRUCTURE"
+    FULLSTACK_MOBILE = "FULLSTACK_MOBILE"
+    DEVOPS_CLOUD = "DEVOPS_CLOUD"
+    SECURITY_COMPLIANCE = "SECURITY_COMPLIANCE"
+    DATA_ANALYTICS = "DATA_ANALYTICS"
+    PERFORMANCE_OPTIMIZATION = "PERFORMANCE_OPTIMIZATION"
+    GENERATIVE_AI = "GENERATIVE_AI"
+    SYSTEM_DESIGN = "SYSTEM_DESIGN"
+    PRODUCTION_DEPLOYMENT = "PRODUCTION_DEPLOYMENT"
+
+
+class SkillProficiency(str):
+    BEGINNER = "BEGINNER"
+    INTERMEDIATE = "INTERMEDIATE"
+    ADVANCED = "ADVANCED"
+    EXPERT = "EXPERT"
 class Profile(Base):
     """
     User Profile Model
@@ -102,7 +121,6 @@ class TalentProfile(Base):
     profile_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="CASCADE"), unique=True, nullable=False)
     stage_name = Column(String(100), nullable=True)
     union_status = Column(String(50), nullable=True)  # SAG_AFTRA, NON_UNION, EQUITY, AFTRA, OTHER
-    skills = Column(ARRAY(String), default=[], nullable=False)
     experience_years = Column(Integer, nullable=True)
     height = Column(String(20), nullable=True)
     weight = Column(String(20), nullable=True)
@@ -119,6 +137,7 @@ class TalentProfile(Base):
     # Relations
     profile = relationship("Profile", back_populates="talent_profile")
     user = relationship("User", viewonly=True)
+    talent_skills = relationship("TalentSkill", back_populates="talent_profile")
 
 
 class CastingDirectorProfile(Base):
@@ -142,6 +161,72 @@ class CastingDirectorProfile(Base):
 
 
 # Task 125: Write Casting_Consents ledger schema
+
+class Skill(Base):
+    """
+    Skill Model
+    """
+    __tablename__ = "skills"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(200), unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(Enum(SkillCategory), nullable=False, index=True)
+    tags = Column(ARRAY(String), default=[], nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    
+    # Relations
+    talent_skills = relationship("TalentSkill", back_populates="skill")
+    casting_call_skills = relationship("CastingCallSkill", back_populates="skill")
+
+
+class TalentSkill(Base):
+    """
+    Talent Skill Junction Model (Many-to-Many)
+    """
+    __tablename__ = "talent_skills"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    talent_profile_id = Column(UUID(as_uuid=True), ForeignKey("talent_profiles.id", ondelete="CASCADE"), nullable=False)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="CASCADE"), nullable=False)
+    proficiency = Column(Enum(SkillProficiency), default=SkillProficiency.BEGINNER, nullable=False)
+    years_experience = Column(Integer, nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    
+    # Relations
+    talent_profile = relationship("TalentProfile", back_populates="talent_skills")
+    skill = relationship("Skill", back_populates="talent_skills")
+    
+    __table_args__ = (
+        UniqueConstraint('talent_profile_id', 'skill_id', name='uq_talent_skill'),
+    )
+
+
+class CastingCallSkill(Base):
+    """
+    Casting Call Skill Junction Model (Many-to-Many)
+    """
+    __tablename__ = "casting_call_skills"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    casting_call_id = Column(UUID(as_uuid=True), ForeignKey("casting_calls.id", ondelete="CASCADE"), nullable=False)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="CASCADE"), nullable=False)
+    required = Column(Boolean, default=False, nullable=False)
+    weight = Column(Float, default=1.0, nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    
+    # Relations
+    casting_call = relationship("CastingCall", back_populates="casting_call_skills")
+    skill = relationship("Skill", back_populates="casting_call_skills")
+    
+    __table_args__ = (
+        UniqueConstraint('casting_call_id', 'skill_id', name='uq_casting_call_skill'),
+    )
+
+
 class CastingConsent(Base):
     """
     Consent Ledger for Casting
@@ -322,6 +407,7 @@ class CastingCall(Base):
     # Relations
     director = relationship("User", back_populates="casting_calls")
     applications = relationship("Application", back_populates="casting_call")
+    casting_call_skills = relationship("CastingCallSkill", back_populates="casting_call")
 
 
 class Application(Base):
@@ -609,9 +695,15 @@ class CampaignApplication(Base):
 __all__ = [
     "Base",
     "User",
+    "UserRole",
     "Profile",
     "TalentProfile",
     "CastingDirectorProfile",
+    "Skill",
+    "SkillCategory",
+    "SkillProficiency",
+    "TalentSkill",
+    "CastingCallSkill",
     "CastingConsent",
     "PricingTier",
     "Transaction",
